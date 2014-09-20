@@ -37,20 +37,20 @@ class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
         self.refreshNarc()
     def refreshNarc(self):
         filenames = []
-        for i in range(0, self.narc.btaf.getEntryNum()):
+        for i in xrange(self.narc.fatb.num):
             name = "File %i" % i
             filenames.append(name)
         self.selectFile.clear()
         self.selectFile.addItems(filenames)
         #self.selectFile.setCurrentIndex(0)
-        self.archivesize.setText(str(self.narc.btaf.getSize()+self.narc.btnf.header[0]+self.narc.gmif.size))
-        self.archivefiles.setText(str(self.narc.btaf.getEntryNum()))
+        self.archivesize.setText(str(self.narc.size))
+        self.archivefiles.setText(str(self.narc.fatb.num))
         self.archivename.setText(self.name)
     def selectArchiveFile(self):
         cfile = self.selectFile.currentIndex()
         self.fileindex.setText(str(cfile))
-        self.filesize.setText(str(len(self.narc.gmif.files[cfile])))
-        self.fileheader.setText(unicode(self.narc.gmif.files[cfile][:4]))
+        self.filesize.setText(str(len(self.narc.fimg.files[cfile])))
+        self.fileheader.setText(unicode(self.narc.fimg.files[cfile][:4]))
     def deleteFile(self):
         print "can't delete"
         return
@@ -61,7 +61,7 @@ class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
         if not filename:
             return
         newfile = open(filename, 'w')
-        newfile.write(self.narc.gmif.files[cfile])
+        newfile.write(self.narc.fimg.files[cfile])
         newfile.close()
     def extractAllFiles(self):
         dirname = QFileDialog.getExistingDirectory(None, "Choose a directory", self.dir)
@@ -71,10 +71,10 @@ class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
             os.mkdir(dirname)
         except:
             pass
-        for n in range(0,self.narc.btaf.getEntryNum()):
+        for n in range(0,self.narc.fatb.num):
             filename = "%s/%i" % (self.name,n)
             newfile = open(filename, 'wb')
-            newfile.write(self.narc.gmif.files[n])
+            newfile.write(self.narc.fimg.files[n])
             newfile.close()
     def replaceFile(self):
         cfile = self.selectFile.currentIndex()
@@ -90,7 +90,7 @@ class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
         #    print ord(e),
         #    #bytes+= (chr(int(e)))
         #return
-        self.narc.replaceFile(cfile,d)
+        self.narc.files[cfile] = d
         self.refreshNarc()
         self.selectArchiveFile()
         self.save()
@@ -101,16 +101,13 @@ class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
         f = open(fileName, "rb")
         d = f.read()
         f.close()
-        bytes = []
-        for e in d:
-            bytes.append(ord(e))
-        self.narc.addFile(bytes)
+        self.narc.files.append(d)
         self.refreshNarc()
         self.selectArchiveFile()
         self.save()
     def save(self):
         f = open(self.NARCname, "wb")
-        self.narc.ToFile(f)
+        f.write(str(self.narc))
         f.close()
         self.openNarc(self.NARCname)
 
