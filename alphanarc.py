@@ -8,10 +8,8 @@ import sys, os
 import ui_alphanarc
 
 sys.path.append('../')
-from rawdb.elements.ntr.narc import NARCAtom
-
-
-NARC = NARCAtom()
+from rawdb.ntr.narc import NARC
+from rawdb.util.io import BinaryIO
 
 
 class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
@@ -30,10 +28,8 @@ class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
         self.NARCname = filename
         ndir, nfile = os.path.split(str(filename))
         self.name = nfile
-        f = open(filename, "rb")
-        d = f.read()
-        f.close()
-        self.narc = NARC(d)
+        with open(filename, "rb") as handle:
+            self.narc = NARC(BinaryIO.adapter(handle))
         self.refreshNarc()
     def refreshNarc(self):
         filenames = []
@@ -43,7 +39,7 @@ class MainWindow(QMainWindow, ui_alphanarc.Ui_MainWindow):
         self.selectFile.clear()
         self.selectFile.addItems(filenames)
         #self.selectFile.setCurrentIndex(0)
-        self.archivesize.setText(str(self.narc.size))
+        self.archivesize.setText('--')
         self.archivefiles.setText(str(self.narc.fatb.num))
         self.archivename.setText(self.name)
     def selectArchiveFile(self):
